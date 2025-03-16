@@ -1,0 +1,29 @@
+Troubleshooting
+
+zone is full errors: Increase the zone size (e.g., 20m).
+
+Incorrect IP tracking: Use $http_x_forwarded_for if behind a proxy:
+
+limit_req_zone $http_x_forwarded_for zone=ratelimit:10m rate=10r/s;
+
+#Final Configuration Example
+
+http {
+    limit_req_zone $binary_remote_addr zone=ratelimit:10m rate=10r/s;
+    limit_req_status 429;
+
+    server {
+        listen 80;
+        server_name example.com;
+
+        location / {
+            limit_req zone=ratelimit burst=20 nodelay;
+            proxy_pass http://backend;
+        }
+
+        location /static/ {
+            # No rate limiting for static assets
+            alias /var/www/static/;
+        }
+    }
+}
